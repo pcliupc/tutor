@@ -36,22 +36,13 @@ RUN mkdir -p /openedx/edx-platform && \
 WORKDIR /openedx/edx-platform
 
 # Patch edx-platform
-# Make it possible to disable learner records globally
-# https://github.com/edx/edx-platform/pull/25182
-# https://github.com/overhangio/edx-platform/tree/overhangio/disable-learner-records-from-settings
-RUN curl https://github.com/overhangio/edx-platform/commit/bd038bab3cf02df147e754f7743e46b68b43bac8.patch | git apply -
-# Fix inconvenient pavelib warning
-# https://github.com/edx/edx-platform/pull/25771
-# https://github.com/overhangio/edx-platform/tree/overhangio/fix-paver-warning
-RUN curl https://github.com/overhangio/edx-platform/commit/bc0ab09f9945bd14aa6be1dbbf928cce58f079d2.patch | git apply -
-# Fix js upload in scorm packages by upgrading django-pipeline
-# https://github.com/edx/edx-platform/pull/25957
-# https://github.com/overhangio/edx-platform/tree/overhangio/upgrade-django-pipeline
-RUN curl https://github.com/overhangio/edx-platform/commit/1c733e3ba11249cf16358684169e6137a308e796.patch | git apply -
+# RUN curl https://github.com/overhangio/edx-platform/commit/<sha1>.patch | git apply -
 
 ###### Download extra locales to /openedx/locale/contrib/locale
 FROM minimal as locales
-ARG OPENEDX_I18N_VERSION={{ OPENEDX_COMMON_VERSION }}
+# ARG OPENEDX_I18N_VERSION={{ OPENEDX_COMMON_VERSION }}
+# TODO switch to lilac version
+ARG OPENEDX_I18N_VERSION=open-release/koa.3
 RUN cd /tmp \
     && curl -L -o openedx-i18n.tar.gz https://github.com/openedx/openedx-i18n/archive/$OPENEDX_I18N_VERSION.tar.gz \
     && tar xzf /tmp/openedx-i18n.tar.gz \
@@ -79,7 +70,8 @@ RUN pip install setuptools==44.1.0 pip==20.0.2 wheel==0.34.2
 RUN pip install -r ./requirements/edx/base.txt
 
 # Install scorm xblock
-RUN pip install "openedx-scorm-xblock<12.0.0,>=11.0.0"
+# TODO install scorm
+# RUN pip install "openedx-scorm-xblock<123.0.0,>=12.0.0"
 
 # Install django-redis for using redis as a django cache
 RUN pip install django-redis==4.12.1
@@ -98,7 +90,7 @@ FROM python as nodejs-requirements
 ENV PATH /openedx/nodeenv/bin:/openedx/venv/bin:${PATH}
 
 # Install nodeenv with the version provided by edx-platform
-RUN pip install nodeenv==1.4.0
+RUN pip install nodeenv==1.6.0
 RUN nodeenv /openedx/nodeenv --node=12.13.0 --prebuilt
 
 # Install nodejs requirements
